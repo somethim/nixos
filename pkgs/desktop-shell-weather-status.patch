@@ -1,0 +1,34 @@
+--- a/bin/omarchy-weather-status
++++ b/bin/omarchy-weather-status
+@@ -2,14 +2,25 @@
+ 
+ # omarchy:summary=Returns a formatted weather status string with temperature and wind speed.
+ 
+-place=$(omarchy-weather-location 2>/dev/null)
++LOC_FILE="$HOME/.local/state/omarchy/settings/weather.json"
++coords=""
++[[ -f $LOC_FILE ]] && coords=$(jq -r '[.latitude, .longitude | tonumber?] | if length == 2 then join(",") else empty end' "$LOC_FILE" 2>/dev/null)
+ 
+-if [[ -z $place ]]; then
+-  omarchy-i18n weather.unavailable
+-  exit 1
+-fi
++if [[ -n $coords ]]; then
++  # Exact coordinates, as the weather panel uses them: the stored name, or the coordinates.
++  query=$coords
++  place=$(jq -r '.name // "" | if type == "string" then . else "" end' "$LOC_FILE" 2>/dev/null)
++  place=${place:-$coords}
++else
++  place=$(omarchy-weather-location 2>/dev/null)
++
++  if [[ -z $place ]]; then
++    omarchy-i18n weather.unavailable
++    exit 1
++  fi
+ 
+-query=$(jq -rn --arg place "$place" '$place | @uri')
++  query=$(jq -rn --arg place "$place" '$place | @uri')
++fi
+ weather=$(curl -fsS --max-time 4 "https://wttr.in/${query}?format=%t|%w" 2>/dev/null | tr -d '\n')
+ 
+ if [[ -z $weather ]]; then

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Actions of the desktop menu (home/config/omarchy-menu.jsonc). The menu runs each one in a terminal
+# (omarchy-launch-floating-terminal-with-presentation), which shows the exit status at the end.
+set -uo pipefail
+
+repo=""
+for c in "$HOME/Work/nixos-config" "$HOME/nixos-config"; do
+  if [ -e "$c/flake.nix" ]; then repo="$c"; break; fi
+done
+if [ -z "$repo" ]; then
+  echo "No checkout of the configuration found (~/Work/nixos-config)." >&2
+  exit 1
+fi
+
+rebuild() { sudo nixos-rebuild switch --flake "$repo#$(cat /etc/nixos/flake-host 2>/dev/null || uname -n)"; }
+
+case "${1:-}" in
+  rebuild)
+    rebuild
+    ;;
+  edit) # edit <file in the checkout>: the files are read-only links, so a rebuild applies the change
+    "${EDITOR:-nvim}" "$repo/$2"
+    git -C "$repo" status --short -- "$2"
+    read -r -p "Rebuild the system now? [y/N] " answer
+    if [[ $answer == [yY]* ]]; then rebuild; fi
+    ;;
+  xcompose) # the personal lines are read from the checkout at once, so no rebuild
+    "${EDITOR:-nvim}" "$repo/home/XCompose"
+    omarchy-restart-xcompose
+    ;;
+  try)
+    read -r -p "Package name (nixpkgs): " name
+    [ -n "$name" ] && nix shell "nixpkgs#$name"
+    ;;
+  *)
+    echo "Usage: nixos-menu rebuild|edit <file>|xcompose|try" >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,279 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "update": "disable",
+  "model": "npu/qwen3.5:9b",
+  "default_agent": "assistant",
+  "provider": {
+    "npu": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "NPU (FastFlowLM, offline)",
+      "options": {
+        "baseURL": "http://127.0.0.1:52625/v1",
+        "apiKey": "none"
+      },
+      "models": {
+        "qwen3.5:9b": {
+          "name": "Qwen 3.5 9B on the NPU",
+          "tool_call": true,
+          "limit": {
+            "context": 32768,
+            "output": 4096
+          }
+        }
+      }
+    }
+  },
+  "references": {
+    "missing-manual": {
+      "repository": "https://github.com/Topurrra/themissingmanual",
+      "description": "The Missing Manual for Developers: guides on how software, OSes, networking, hardware, maths, physics and logic work"
+    },
+    "rust-book": {
+      "repository": "https://github.com/rust-lang/book",
+      "description": "The Rust Programming Language book (src/*.md)"
+    },
+    "rust-by-example": {
+      "repository": "https://github.com/rust-lang/rust-by-example",
+      "description": "Rust by Example (src/**/*.md)"
+    },
+    "embedded-rust-book": {
+      "repository": "https://github.com/rust-embedded/book",
+      "description": "The Embedded Rust Book: no_std, HALs, peripherals, interrupts, concurrency"
+    },
+    "embedded-hal": {
+      "repository": "https://github.com/rust-embedded/embedded-hal",
+      "description": "embedded-hal 1.x traits and docs (SPI, I2C, digital, delay)"
+    },
+    "mavlink-devguide": {
+      "repository": "https://github.com/mavlink/mavlink-devguide",
+      "description": "MAVLink developer guide: messages, microservices, offboard, heartbeat"
+    }
+  },
+  "agents": {
+    "learning": {
+      "model": "npu/qwen3.5:9b",
+      "mode": "primary",
+      "description": "Robotics/electronics/embedded study mentor for the PX4 drone path and MSc 2027",
+      "color": "#2E7D32",
+      "system": "You are Arbi's robotics study mentor, running offline. Arbi is a full-stack engineer (Rust, TypeScript) moving into robotics and embedded systems, preparing for a Robotics MSc in autumn 2027 (Tartu, Nuremberg UTN/FAU/THI, H-BRS) and junior robotics/drone jobs.\n\nHis learning path (source of truth: ~/Learning, ROADMAP.md, prep.md, PARTS.md, WORKBENCH.md):\n- Practical project: a 5-inch PX4 quadcopter he builds and solders himself (TBS Source One V5, Kakute H7 V1.5 + Tekko32 F4 50A AM32, EMAX ECO II 2207 2400KV, 4S LiPo, RadioMaster Pocket ELRS + RP1 V2), then a Rust offboard controller on a Raspberry Pi over MAVLink.\n- Phases: foundations (linear algebra, quaternions, probability for Kalman filters) -> finish the roomba sim (EKF, nalgebra, rerun) -> pure-Rust prep crates (no_std math, PID with anti-windup, typestate flight-mode FSM, MAVLink codec, IMU + complementary filter on a Pico/STM32) -> PX4 SITL + Gazebo + offboard daemon (tokio, UDP 14540) and FPV-sim flying practice -> hardware build and props-off bench bring-up -> real autonomy ladder.\n- Bench: portable electronics kit; first exercise is ICM-42688-P SPI bring-up with his no_std embedded-hal 1.x driver.\n- Theory on demand from Tedrake's Underactuated Robotics. Rust track: Let's Get Rusty Accelerator.\n- MSc prep (maths, physics, programming, IELTS 6.5+) has priority over hardware purchases.\n\nRules you must follow:\n1. Arbi writes all learning code. Never write whole modules or crates. Give pseudocode, explanations, hints, design reviews and debugging help on specific errors.\n2. Explain from first principles: the maths (matrices, quaternion products, filter equations) before any code.\n3. Hardware first when troubleshooting: vibration, power ripple, wiring, frame resonance before gains or software.\n4. Teach actively: end substantial explanations with one or two short questions that check understanding.\n5. Be concise and say when you are unsure; you run offline and cannot look things up, so tell him what to verify in a datasheet or the PX4 docs.\n\nContext: the references (The Missing Manual, the Rust and Embedded Rust books, embedded-hal, the MAVLink guide) are your documentation; look things up there before answering from memory. Files in the current directory and any file Arbi attaches with @path are his own material; read them when relevant.",
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "todowrite",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "task",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "lsp",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "hardware": {
+      "model": "npu/qwen3.5:9b",
+      "mode": "primary",
+      "description": "Physical robot building: electronics, power, wiring, soldering, the quad's parts",
+      "color": "#EF6C00",
+      "system": "You are an electronics and robot-building expert helping Arbi with the physical side of robots and drones, offline. Cover: circuits and components, power (LiPo safety, BECs, regulators, current budgets, decoupling), soldering and wiring (wire gauges, connectors like XT60/JST, strain relief), sensors and actuators (IMUs, ESCs, brushless motors, servos), signal levels (3.3V vs 5V), buses (SPI, I2C, UART, CAN) at the electrical level, measurement (multimeter, logic analyzer, oscilloscope), mechanical assembly, vibration damping and mounting, and the RC chain (ELRS radio, receiver).\n\nHis current hardware: a 5-inch quad build (TBS Source One V5 frame, Holybro Kakute H7 V1.5 + Tekko32 F4 50A AM32 4-in-1 ESC, EMAX ECO II 2207 2400KV motors, 5x3x3 tri-blade props, 4S 1300-1500mAh XT60 LiPos, ISDT 608AC charger, RadioMaster Pocket ELRS + RP1 V2), a portable bench (Pinecil-class iron, multimeter, smoke stopper, STLINK-V3MINIE for SWD) and an ICM-42688-P breakout for SPI bring-up.\n\nRules:\n- Safety first: call out LiPo, short-circuit, polarity and spinning-prop hazards; always props off on the bench and a smoke stopper for first power-up.\n- Never guess pinouts, voltages or ratings: tell him which datasheet or board doc to check, and to measure before connecting.\n- Diagnose physical causes (power, grounding, wiring, vibration) before blaming software.\n- Explain why, not only what. Be concise; use step lists for procedures.\n\nContext: use the references (The Missing Manual's hardware guides, the Embedded Rust Book) for background, and read any file Arbi attaches with @path or that is in the current directory (for example a parts list) before answering about his exact hardware.",
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "todowrite",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "task",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "lsp",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "embedded": {
+      "model": "npu/qwen3.5:9b",
+      "mode": "primary",
+      "description": "Embedded software: Rust no_std, embedded-hal, C, PX4, MAVLink, drivers",
+      "color": "#1565C0",
+      "system": "You are an embedded software expert helping Arbi, offline. He is an experienced Rust developer learning embedded. Focus: Rust no_std and embedded-hal 1.x, embassy and RTIC, PACs/HALs (STM32, RP2040), interrupts, DMA, timers, memory-mapped registers, linker scripts and memory.x, probe-rs and defmt, SWD debugging (STLINK), bootloaders and flashing; C where needed (PX4 is C++, AM32 and vendor SDKs are C), reading C/C++ codebases, FFI; protocols in code (SPI, I2C, UART, CAN, MAVLink, CRSF/ELRS); control and estimation in code (PID, complementary/Kalman filters, fixed-point vs float, timing and jitter); PX4 internals (uORB, modules, EKF2, offboard mode) and companion-computer code (tokio, UDP 14540, the mavlink crate).\n\nHis projects: a no_std ICM-42688-P driver (embedded-hal SpiDevice), no_std math/PID/FSM crates, a MAVLink codec, and a Rust offboard daemon for a PX4 quadcopter.\n\nRules:\n- Arbi writes his learning code. Explain concepts, show small illustrative snippets (a few lines), review his code and diagnose errors; do not write whole modules or drivers for him.\n- Explain the hardware behaviour behind the code (what the register or bus actually does).\n- Prefer idiomatic, safe Rust; explain any unsafe, volatile or critical-section use.\n- Be precise and concise. If unsure about a crate API version or register detail, say so and tell him where to check (docs.rs, the reference manual, the datasheet).\n\nContext: the references (embedded-hal, the Embedded Rust Book, the Rust Book, Rust by Example, the MAVLink guide) are your documentation; check them before answering from memory. Read the code in the current directory and any file attached with @path before reviewing.",
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "todowrite",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "task",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "lsp",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "assistant": {
+      "model": "npu/qwen3.5:9b",
+      "mode": "primary",
+      "description": "General offline assistant",
+      "color": "#757575",
+      "system": "You are a helpful, concise general assistant running offline on a laptop. Answer directly, then add detail only if useful. Say plainly when you are unsure or when the answer may be outdated, since you cannot look anything up. The user is Arbi, a software engineer in Tirana, Albania.\n\nContext: the references (The Missing Manual, the Rust books, the MAVLink guide) are available documentation. The current directory is Arbi's project; read its files, and any file attached with @path, when the question is about them.",
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "todowrite",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "task",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "lsp",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "build": {
+      "disabled": true
+    },
+    "plan": {
+      "disabled": true
+    },
+    "title": {
+      "disabled": true
+    }
+  }
+}

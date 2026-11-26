@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# Look for updates and prepare them. The result is in the state folder (see home/updates.nix):
+# summary.txt (for people), headline (one line for the bar), flake.lock.new (the newer lock),
+# new-system (the built system, a GC root) and the marker file "available".
+# --if-stale: stop when the last check is less than 24 hours old.
+# The variables SYSTEM_UPDATE_{REPO,STATE,POWER,RUN} replace the default paths (tests).
+set -euo pipefail
+export LC_ALL=C
+state="${SYSTEM_UPDATE_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/system-update}"
+power="${SYSTEM_UPDATE_POWER:-/sys/class/power_supply}"
+run="${SYSTEM_UPDATE_RUN:-/run}"
+repo=""
+for c in "${SYSTEM_UPDATE_REPO:-}" "$HOME/Work/nixos-config" "$HOME/nixos-config"; do
+  if [ -n "$c" ] && [ -e "$c/flake.nix" ]; then repo="$c"; break; fi
+done
+if [ -z "$repo" ]; then
+  echo "No checkout of the configuration found (~/Work/nixos-config)." >&2
+  exit 1
+fi
+
+mkdir -p "$state"
+cd "$state"
+if [ "${1:-}" = --if-stale ] && [ -e checked ] && [ -z "$(find checked -mmin +1440)" ]; then exit 0; fi
+
+# No network: keep the last result.
+cp "$repo/flake.lock" base.lock
+if ! nix flake update --flake "$repo" --output-lock-file "$state/flake.lock.new" >/dev/null 2>&1; then
+  echo "The newer lock file is not available (no network?). The last result stays." >&2
+  exit 0
+fi
+
+# The inputs with a new revision: name, old and new revision, date.
+changes=$(jq -r --slurpfile new flake.lock.new '
+  def rev: (.rev // .narHash // "?")[0:7];
+  def day: (.lastModified // 0 | strftime("%Y-%m-%d"));
+  .nodes as $old | $new[0].nodes as $nodes
+  | $new[0].nodes.root.inputs | to_entries[] | select(.value | type == "string")
+  | .key as $name | ($nodes[.value].locked // {}) as $b
+  | ($old[.value].locked // {}) as $a | select($a.narHash != $b.narHash)
+  | "  \($name): \($a | rev) (\($a | day)) -> \($b | rev) (\($b | day))"' base.lock)
+
+on_battery=0
+for s in "$power"/*; do
+  if [ "$(cat "$s/type" 2>/dev/null)" = Battery ] && [ "$(cat "$s/status" 2>/dev/null)" = Discharging ]; then on_battery=1; fi
+done
+
+reboot=()
+packages=""
+if [ -z "$changes" ]; then
+  rm -rf flake.lock.new new-system
+elif [ "$on_battery" = 1 ]; then
+  packages="The new system is not built: the computer runs on battery."
+else
+  # nix build uses the newer lock file and does not write to the checkout.
+  if nice -n 10 ionice -c3 nix build --no-write-lock-file --reference-lock-file "$state/flake.lock.new" \
+    --out-link "$state/new-system" --max-jobs 2 --cores 4 \
+    "$repo#nixosConfigurations.$(cat /etc/nixos/flake-host 2>/dev/null || uname -n).config.system.build.toplevel" 2>build.log; then
+    packages=$(nix store diff-closures /run/current-system "$state/new-system" | head -n 80 || true)
+    for part in kernel initrd systemd firmware; do
+      [ "$(readlink -f "$run/booted-system/$part")" = "$(readlink -f "$state/new-system/$part")" ] || reboot+=("$part")
+    done
+  else
+    packages="The new system does not build: $(tail -n 3 build.log)"
+  fi
+fi
+
+# Firmware: device, versions and the fwupd flags (needs-reboot, require-ac).
+fwupdmgr refresh >/dev/null 2>&1 || echo "The firmware metadata is not refreshed (no network?)." >&2
+firmware=$(fwupdmgr get-updates --json 2>/dev/null | jq -r '.Devices[]? | select((.Releases // []) | length > 0)
+  | [.Name, .Version, .Releases[0].Version, (.Flags // [] | index("needs-reboot") != null), (.Flags // [] | index("require-ac") != null)]
+  | @tsv' || true)
+fw_lines="" fw_count=0 fw_reboot=() fw_ac=()
+while IFS=$'\t' read -r name old new needs_reboot needs_ac; do
+  [ -n "$name" ] || continue
+  fw_lines+="  $name: $old -> $new"$'\n'
+  fw_count=$((fw_count + 1))
+  if [ "$needs_reboot" = true ]; then fw_reboot+=("$name"); fi
+  if [ "$needs_ac" = true ]; then fw_ac+=("$name"); fi
+done <<<"$firmware"
+
+join() { local out="" a; for a in "$@"; do out+="${out:+, }$a"; done; echo "$out"; }
+{
+  echo "System updates, checked $(date '+%Y-%m-%d %H:%M')"
+  echo
+  echo "Packages"
+  if [ -z "$changes" ]; then echo "  Up to date."; else echo "$changes"; fi
+  if [ -n "$packages" ]; then echo; echo "  ${packages//$'\n'/$'\n'  }"; fi
+  echo
+  echo "Firmware"
+  if [ -z "$fw_lines" ]; then echo "  Up to date."; else printf '%s' "$fw_lines"; fi
+  echo
+  echo "Needs"
+  needs=0
+  if [ "${#reboot[@]}" -gt 0 ]; then echo "  Reboot after the packages: $(join "${reboot[@]}") changed."; needs=1; fi
+  if [ "${#fw_reboot[@]}" -gt 0 ]; then echo "  Reboot for the firmware: $(join "${fw_reboot[@]}")."; needs=1; fi
+  if [ "${#fw_ac[@]}" -gt 0 ]; then echo "  Power connected for the firmware: $(join "${fw_ac[@]}")."; needs=1; fi
+  if [ "$on_battery" = 1 ] && [ -n "$changes" ]; then echo "  Power connected to build the new system."; needs=1; fi
+  if [ "$needs" = 0 ]; then echo "  Nothing."; fi
+} >summary.txt.new
+mv summary.txt.new summary.txt
+
+if [ -n "$changes" ] || [ "$fw_count" -gt 0 ]; then
+  headline="Updates: $(printf '%s\n' "$changes" | grep -c . || true) inputs, $fw_count firmware"
+  if [ "${#reboot[@]}" -gt 0 ] || [ "${#fw_reboot[@]}" -gt 0 ]; then headline+=", reboot needed"; fi
+  echo "$headline" >headline
+  # The identity of this set of updates: a right click on the bar icon hides this set only.
+  printf '%s\n%s' "$changes" "$fw_lines" | sha256sum | cut -d' ' -f1 >id
+  touch available
+else
+  rm -f available headline id dismissed
+fi
+touch checked
+# Tell the bar to read the result again (best effort: the shell may not run).
+desktop-shell-ipc -q omarchy.system-update refresh || true

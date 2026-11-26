@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# The bar icon calls this. Exit 0 and a one-line text when updates wait, else exit 1.
+# It only reads the result of system-update-check and never starts a check.
+#   --dismiss   hide the icon for the updates that wait now (right click). A newer set shows again.
+state="${SYSTEM_UPDATE_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/system-update}"
+if [ "${1:-}" = --dismiss ]; then
+  [ -e "$state/id" ] && cp "$state/id" "$state/dismissed"
+  exit 0
+fi
+[ -e "$state/available" ] || exit 1
+if [ -e "$state/dismissed" ] && [ "$(cat "$state/id" 2>/dev/null)" = "$(cat "$state/dismissed")" ]; then exit 1; fi
+cat "$state/headline" 2>/dev/null || true

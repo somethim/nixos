@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "somethim.vitals",
+  "name": "Vitals",
+  "version": "1.0.0",
+  "author": "somethim",
+  "description": "CPU, GPU, NPU, memory and temperature in the bar",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Vitals.qml"
+  },
+  "barWidget": {
+    "displayName": "Vitals",
+    "description": "Shows CPU, GPU, NPU, RAM and temperature. Click to open btop.",
+    "category": "System",
+    "allowMultiple": false,
+    "defaults": {
+      "memoryWarning": 95,
+      "temperatureWarning": 90
+    },
+    "schema": [
+      {
+        "key": "memoryWarning",
+        "type": "integer",
+        "label": "RAM usage warning threshold (%)",
+        "defaultValue": 95,
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      {
+        "key": "temperatureWarning",
+        "type": "integer",
+        "label": "Temperature warning threshold (°C)",
+        "defaultValue": 90,
+        "min": 40,
+        "max": 120,
+        "step": 1
+      }
+    ]
+  }
+}

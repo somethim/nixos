@@ -1,0 +1,6 @@
+# Personal compose sequences. The menu (Setup > Config > XCompose) opens this file.
+# ~/.XCompose reads it after the packaged sequences (home/default.nix).
+
+<Multi_key> <space> <n> : "Arbi Kullakshi"
+<Multi_key> <space> <e> : "contact@arbikullakshi.com"
+<Multi_key> <space> <b> : "‎"

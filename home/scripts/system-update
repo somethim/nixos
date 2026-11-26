@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Apply the updates that system-update-check prepared (the bar icon and the menu start this).
+# Usage: system-update [packages|firmware]. Without an argument, it asks for both.
+set -uo pipefail
+state="${SYSTEM_UPDATE_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/system-update}"
+repo=""
+for c in "$HOME/Work/nixos-config" "$HOME/nixos-config"; do
+  if [ -e "$c/flake.nix" ]; then repo="$c"; break; fi
+done
+if [ -z "$repo" ]; then
+  echo "No checkout of the configuration found (~/Work/nixos-config)." >&2
+  exit 1
+fi
+part="${1:-all}"
+
+# Check again when nothing is prepared or the lock file of the checkout changed since the check.
+if [ ! -e "$state/available" ] || ! cmp -s "$state/base.lock" "$repo/flake.lock"; then
+  system-update-check || exit 1
+fi
+cat "$state/summary.txt"
+echo
+
+ask() { read -r -p "$1 [y/N] " answer; [[ $answer == [yY]* ]]; }
+
+if [ "$part" != firmware ] && [ -e "$state/flake.lock.new" ] && ask "Install the new packages?"; then
+  cp "$state/flake.lock.new" "$repo/flake.lock"
+  # The built system is in the store, so this step is fast.
+  if sudo nixos-rebuild switch --flake "$repo#$(cat /etc/nixos/flake-host 2>/dev/null || uname -n)"; then
+    git -C "$repo" diff --stat -- flake.lock
+    echo "Commit the new lock file: git -C $repo commit -m 'chore(flake): update inputs' -- flake.lock"
+  else
+    cp "$state/base.lock" "$repo/flake.lock"
+    echo "The rebuild failed. The lock file of the checkout is the old one again." >&2
+  fi
+fi
+
+if [ "$part" != packages ] && sed -n '/^Firmware/,/^$/p' "$state/summary.txt" | grep -q -e '->' \
+  && ask "Install the new firmware? Keep the power connected. Some devices need a reboot."; then
+  sudo fwupdmgr update
+fi
+
+# Check again: this updates the marker and the icon with what is left.
+system-update-check

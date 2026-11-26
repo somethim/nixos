@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Write the GeoClue position to the weather state file of the shell (home/location.nix).
+# WHERE_AM_I: the GeoClue demo tool (default: where-am-i from PATH).
+set -euo pipefail
+export LC_ALL=C
+file="$HOME/.local/state/omarchy/settings/weather.json"
+# A location that the user sets by hand (no "source":"geoclue") is never changed.
+if [ -f "$file" ] && [ "$(jq -r '.source // ""' "$file" 2>/dev/null)" != geoclue ]; then exit 0; fi
+
+# where-am-i prints one block per position and stops after the timeout: use the last block.
+here=$("${WHERE_AM_I:-where-am-i}" -t 20 || true)
+# Two decimals (about 1 km): the file stays the same until the user moves.
+lat=$(awk '/^Latitude:/ { v = $2; f = 1 } END { if (f) printf "%.2f", v }' <<<"$here")
+lon=$(awk '/^Longitude:/ { v = $2; f = 1 } END { if (f) printf "%.2f", v }' <<<"$here")
+# No position (offline, no Wi-Fi nearby) is not an error: keep the last location.
+[ -n "$lat" ] && [ -n "$lon" ] || { echo "GeoClue gave no position; the location stays the same" >&2; exit 0; }
+
+# No name: the panel then shows the place that its own weather source reports for the position.
+new=$(jq -n --argjson lat "$lat" --argjson lon "$lon" \
+  '{name: "", latitude: $lat, longitude: $lon, source: "geoclue"}')
+[ "$(cat "$file" 2>/dev/null)" = "$new" ] && exit 0
+mkdir -p "$(dirname "$file")"
+printf '%s\n' "$new" >"$file"

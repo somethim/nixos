@@ -1,0 +1,76 @@
+--- a/shell/plugins/bar/widgets/SystemUpdate.qml
++++ b/shell/plugins/bar/widgets/SystemUpdate.qml
+@@ -13,6 +13,7 @@
+   // A refresh asked for while a check is running (say, the network coming back
+   // during a check that started offline) runs once that check exits.
+   property bool refreshPending: false
++  property string summary: ""
+ 
+   function refresh() {
+     if (updateProc.running) refreshPending = true
+@@ -21,8 +22,13 @@
+ 
+   function clear() { updateAvailable = false }
+ 
++  function dismiss() {
++    Quickshell.execDetached(["system-update-available", "--dismiss"])
++    clear()
++  }
++
+   function runUpdate() {
+-    if (root.bar) root.bar.run("omarchy-launch-floating-terminal-with-presentation omarchy-update")
++    if (root.bar) root.bar.run("omarchy-launch-floating-terminal-with-presentation system-update")
+   }
+ 
+   visible: updateAvailable
+@@ -43,7 +49,12 @@
+ 
+   Process {
+     id: updateProc
+-    command: ["omarchy-update-available"]
++    // Reads the result of the last check (home/updates.nix). It never starts a check.
++    command: ["system-update-available"]
++    stdout: StdioCollector {
++      waitForEnd: true
++      onStreamFinished: root.summary = text.trim()
++    }
+     onExited: function(exitCode) {
+       root.updateAvailable = exitCode === 0
+       if (root.refreshPending) {
+@@ -72,7 +83,11 @@
+     bar: root.bar
+     text: "\uf021"
+     slotSize: Style.bar.statusSlot
+-    tooltipText: I18n.t("bar.pendingUpdates")
+-    onPressed: root.runUpdate()
++    tooltipText: root.summary || "Updates available"
++    // Left click: open the updater. Right click: hide the icon until a newer set of updates.
++    onPressed: function(button) {
++      if (button === Qt.RightButton) root.dismiss()
++      else root.runUpdate()
++    }
+   }
+ }
+--- a/shell/plugins/lock/Service.qml
++++ b/shell/plugins/lock/Service.qml
+@@ -246,6 +246,7 @@
+     sessionLock.locked = false
+     logEvent("unlocked")
+     runWake()
++    if (!updateCheckProcess.running) updateCheckProcess.running = true
+   }
+ 
+   function armBlankTimer(delayMs) {
+@@ -759,6 +760,12 @@
+     command: ["bash", "-c", "omarchy-system-wake"]
+   }
+ 
++  // Update check after an unlock. The unit skips the check when the last one is less than 24 hours old.
++  Process {
++    id: updateCheckProcess
++    command: ["systemctl", "--user", "--no-block", "start", "system-update-unlock.service"]
++  }
++
+   Process {
+     id: blankProcess
+     command: ["bash", "-c", "omarchy-brightness-keyboard off; omarchy-brightness-display off"]

@@ -1,0 +1,11 @@
+# Super+Alt+F: toggle the focused column between full and half width (scrolling
+# layout; on a workspace with another layout it toggles maximize). The other
+# columns stay half wide; Super+Left/Right reaches them.
+# One state only: a window left maximized from before is first restored.
+if [ "$(hyprctl activewindow -j | jq -r '.fullscreen // 0')" != 0 ]; then
+  exec hyprctl dispatch 'hl.dsp.window.fullscreen_state({ internal = 0, client = 0 })'
+fi
+if [ "$(hyprctl activeworkspace -j | jq -r '.tiledLayout // ""')" != scrolling ]; then
+  exec hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = "maximized" })'
+fi
+exec hyprctl dispatch 'hl.dsp.layout("colresize +conf")'

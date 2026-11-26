@@ -1,0 +1,132 @@
+--- a/shell/plugins/panels/weather/Model.js
++++ b/shell/plugins/panels/weather/Model.js
+@@ -155,7 +155,7 @@
+   if (!daily || !daily.time) return []
+ 
+   var result = []
+-  for (var i = 0; i < daily.time.length && result.length < 3; ++i) {
++  for (var i = 0; i < daily.time.length && result.length < 7; ++i) {
+     var date = daily.time[i]
+     if (!isFutureForecastDate(date, todayString)) continue
+ 
+--- a/shell/plugins/panels/weather/Panel.qml
++++ b/shell/plugins/panels/weather/Panel.qml
+@@ -207,7 +207,7 @@
+       + "&longitude=" + encodeURIComponent(String(lon))
+       + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
+       + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day"
+-      + "&forecast_days=4"
++      + "&forecast_days=8"
+       + "&timezone=auto"
+     dailyForecastProc.command = ["curl", "-fsS", "--max-time", "5", url]
+     dailyForecastProc.running = true
+@@ -868,67 +868,56 @@
+         opacity: 0.12
+       }
+ 
+-      // ---- Forecast row: each cell has the day icon left of a day-name + hi/lo column.
+-      //      Wrapped in an Item so the block of cells can be centered within the popup.
+-      Item {
++      // ---- Forecast row: one compact column per day (name, icon, high, low), the width split evenly.
++      Row {
++        id: forecastRow
+         visible: root.forecastDays.length > 0
+         width: parent.width
+-        height: forecastRow.height
+-
+-        Row {
+-          id: forecastRow
+-          anchors.horizontalCenter: parent.horizontalCenter
+-          spacing: Style.space(44)
+ 
+-          Repeater {
+-            model: root.forecastDays
+-
+-            Row {
+-              required property var modelData
+-              required property int index
+-              spacing: Style.space(10)
++        Repeater {
++          model: root.forecastDays
+ 
+-              Text {
+-                textFormat: Text.PlainText
+-                anchors.verticalCenter: parent.verticalCenter
+-                text: root.dayIcon(modelData)
+-                color: root.bar.foreground
+-                font.family: root.bar.fontFamily
+-                font.pixelSize: Style.font.display
+-              }
++          Column {
++            required property var modelData
++            required property int index
++            width: forecastRow.width / Math.max(1, root.forecastDays.length)
++            spacing: Style.space(4)
+ 
+-              Column {
+-                anchors.verticalCenter: parent.verticalCenter
+-                spacing: Style.space(2)
++            Text {
++              textFormat: Text.PlainText
++              anchors.horizontalCenter: parent.horizontalCenter
++              text: root.dayName(modelData.date).toUpperCase().slice(0, 3)
++              color: Qt.darker(root.bar.foreground, 1.4)
++              font.family: root.bar.fontFamily
++              font.pixelSize: Style.font.caption
++              font.letterSpacing: 1
++            }
+ 
+-                Text {
+-                  textFormat: Text.PlainText
+-                  text: root.dayName(modelData.date).toUpperCase()
+-                  color: Qt.darker(root.bar.foreground, 1.4)
+-                  font.family: root.bar.fontFamily
+-                  font.pixelSize: Style.font.caption
+-                  font.letterSpacing: 1
+-                }
++            Text {
++              textFormat: Text.PlainText
++              anchors.horizontalCenter: parent.horizontalCenter
++              text: root.dayIcon(modelData)
++              color: root.bar.foreground
++              font.family: root.bar.fontFamily
++              font.pixelSize: Style.font.display
++            }
+ 
+-                Row {
+-                  spacing: Style.space(6)
++            Text {
++              textFormat: Text.PlainText
++              anchors.horizontalCenter: parent.horizontalCenter
++              text: root.bareTempForDay(modelData, "max")
++              color: root.bar.foreground
++              font.family: root.bar.fontFamily
++              font.pixelSize: Style.font.body
++            }
+ 
+-                  Text {
+-                    textFormat: Text.PlainText
+-                    text: root.bareTempForDay(modelData, "max")
+-                    color: root.bar.foreground
+-                    font.family: root.bar.fontFamily
+-                    font.pixelSize: Style.font.body
+-                  }
+-                  Text {
+-                    textFormat: Text.PlainText
+-                    text: root.bareTempForDay(modelData, "min")
+-                    color: Qt.darker(root.bar.foreground, 1.5)
+-                    font.family: root.bar.fontFamily
+-                    font.pixelSize: Style.font.body
+-                  }
+-                }
+-              }
++            Text {
++              textFormat: Text.PlainText
++              anchors.horizontalCenter: parent.horizontalCenter
++              text: root.bareTempForDay(modelData, "min")
++              color: Qt.darker(root.bar.foreground, 1.5)
++              font.family: root.bar.fontFamily
++              font.pixelSize: Style.font.body
+             }
+           }
+         }

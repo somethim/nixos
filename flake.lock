@@ -1,0 +1,222 @@
+{
+  "nodes": {
+    "agent-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795730885,
+        "narHash": "sha256-Yll9+DQY13zAbZpZDW+wJrXHyGYYBwG8CwFpJifHvPQ=",
+        "owner": "somethim-omarchy",
+        "repo": "agent-skills",
+        "rev": "5b23967d40c1e9af3e91e24b04217c2df4b6b184",
+        "type": "github"
+      },
+      "original": {
+        "owner": "somethim-omarchy",
+        "repo": "agent-skills",
+        "type": "github"
+      }
+    },
+    "desktop-shell": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795731174,
+        "narHash": "sha256-xCwXlMtaBMQDXFyFlT9XxYeRTPNxwzKgHnfjZNH6XRU=",
+        "owner": "omacom",
+        "repo": "omarchy",
+        "rev": "c60aaf0ca9a54a0f927a730a794da841083ad14c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "omacom",
+        "repo": "omarchy",
+        "type": "github"
+      }
+    },
+    "disko": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795168368,
+        "narHash": "sha256-D35n2Q2v1KrlF9LS/pFl8Z3EBMJW6qvPw5q4HMbXXLg=",
+        "owner": "nix-community",
+        "repo": "disko",
+        "rev": "44761d4f745b95e037458a0e57133c5700c8e320",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "disko",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795713076,
+        "narHash": "sha256-GUY/RHSSnAJKKI3xk7xrSXrsXFgIOgFrRJOD4uub5J8=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "361da94fb55c67094ec47322d2757d6616a0de92",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "llama-cpp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795728377,
+        "narHash": "sha256-reDbrGG5tv1DEAlZVXaym6uuRR48GnXr6v1RHxaB/q8=",
+        "owner": "ggml-org",
+        "repo": "llama.cpp",
+        "rev": "9fa7a33cbbba2400eeb773a475038bc49e4dbe16",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ggml-org",
+        "repo": "llama.cpp",
+        "type": "github"
+      }
+    },
+    "monologue": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795507321,
+        "narHash": "sha256-YksthuX2lXMYiYofvrlPElbiBB5p7g4eEEby8q13WLo=",
+        "owner": "omacom",
+        "repo": "monologue",
+        "rev": "28fa956e4a00fdc1e2957f288e167f32f8c43861",
+        "type": "github"
+      },
+      "original": {
+        "owner": "omacom",
+        "repo": "monologue",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1795234589,
+        "narHash": "sha256-f/VVvxf5RsQgWVhUtefoca5ktVg0DA2bnkMOcmSnozo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "omasnap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795507055,
+        "narHash": "sha256-TIWdeuhUazciLUf2Nd9iEafyarM1cp7MlKHnflq6FUg=",
+        "owner": "omacom",
+        "repo": "omasnap",
+        "rev": "c382a92a65462b8487f534ac5f6a21bc42cad078",
+        "type": "github"
+      },
+      "original": {
+        "owner": "omacom",
+        "repo": "omasnap",
+        "type": "github"
+      }
+    },
+    "omazed": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795686705,
+        "narHash": "sha256-B4/nGYOd8vjQGgq1wt1ja8Rel+KiCFH9V0G0SmLTnDU=",
+        "owner": "aps6",
+        "repo": "omazed",
+        "rev": "3de899ecd89f4a93b8691ac2d2eb53f49b31a4d5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aps6",
+        "repo": "omazed",
+        "type": "github"
+      }
+    },
+    "plugin-disposable-email": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790032930,
+        "narHash": "sha256-C/aRQ1sDsom0/mHV3H377tAamL86nld5mE4/ORlm7/M=",
+        "owner": "ajanraj",
+        "repo": "omarchy-disposable-email",
+        "rev": "ed260e60917f60006edf998053a09dce3c17f250",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ajanraj",
+        "repo": "omarchy-disposable-email",
+        "type": "github"
+      }
+    },
+    "plugin-media-control": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791114122,
+        "narHash": "sha256-EzBzqcmI+l3z2azjVXB3pPNAC/mE1vVL8JhfEuufThE=",
+        "owner": "debba",
+        "repo": "omarchy-media-control",
+        "rev": "62c3ea7e37e739958e084eabdd4022a3e7c7f4b9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "debba",
+        "repo": "omarchy-media-control",
+        "type": "github"
+      }
+    },
+    "plugin-nightlight": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793467534,
+        "narHash": "sha256-ZvkGzF1Fy/CjL+RO4wwAvuXmTTnjYEyGliy71mOtnkY=",
+        "owner": "devSviat",
+        "repo": "omarchy-nightlight",
+        "rev": "937bd29d1645ba4a0fa638cefcaaf9bd866dbb6e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "devSviat",
+        "repo": "omarchy-nightlight",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "agent-skills": "agent-skills",
+        "desktop-shell": "desktop-shell",
+        "disko": "disko",
+        "home-manager": "home-manager",
+        "llama-cpp": "llama-cpp",
+        "monologue": "monologue",
+        "nixpkgs": "nixpkgs",
+        "omasnap": "omasnap",
+        "omazed": "omazed",
+        "plugin-disposable-email": "plugin-disposable-email",
+        "plugin-media-control": "plugin-media-control",
+        "plugin-nightlight": "plugin-nightlight"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

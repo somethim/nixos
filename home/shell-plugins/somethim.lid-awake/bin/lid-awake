@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Lid awake: keep the session running when a laptop lid closes.
+#
+# The state is a transient systemd user unit holding a handle-lid-switch
+# inhibitor, so it survives shell restarts, can never be lost track of, and
+# ends with the user session. Inside the unit a small watcher turns the
+# internal panel off while the lid is closed, so no Hyprland binding is needed
+# and the upstream lid handling (locking, clamshell mode) keeps working.
+
+UNIT=omarchy-lid-awake.service
+POLL_SECONDS=1
+
+usage() {
+  echo "usage: lid-awake [toggle|on|off|status]" >&2
+  exit 2
+}
+
+is_laptop() {
+  omarchy-hw-laptop >/dev/null 2>&1
+}
+
+active() {
+  systemctl --user --quiet is-active "$UNIT"
+}
+
+notify() {
+  omarchy-shell osd show "{\"icon\":\"$1\",\"message\":\"$2\"}" >/dev/null 2>&1 || true
+}
+
+internal_panel() {
+  local name
+  name=$(omarchy-hyprland-monitor-laptop 2>/dev/null || true)
+  [[ $name =~ ^[A-Za-z0-9._-]+$ ]] && echo "$name"
+}
+
+set_panel() {
+  local name
+  name=$(internal_panel) || return 0
+  hyprctl dispatch "hl.dsp.dpms({ action = \"$1\", monitor = \"$name\" })" >/dev/null 2>&1 || true
+}
+
+# Docked (an external display is connected) the internal panel is already
+# handled by the upstream clamshell mode, so only blank it when it is the only one.
+watch_lid() {
+  local closed=0 now
+  trap 'set_panel enable' EXIT
+  trap 'exit 0' TERM INT
+
+  while :; do
+    if omarchy-hw-laptop-closed; then now=1; else now=0; fi
+    if (( now != closed )); then
+      closed=$now
+      if (( closed )); then
+        # Give the upstream lid-close handling a moment to lock and reconcile first.
+        sleep 1.5
+        omarchy-hw-external-monitors >/dev/null 2>&1 || set_panel disable
+      else
+        set_panel enable
+      fi
+    fi
+    sleep "$POLL_SECONDS" & wait $!
+  done
+}
+
+turn_on() {
+  is_laptop || { echo "Lid awake is only available on laptops." >&2; exit 1; }
+  active && return 0
+  systemctl --user reset-failed "$UNIT" >/dev/null 2>&1 || true
+  systemd-run --user --quiet --collect --unit="$UNIT" \
+    --description="Keep running with the lid closed" \
+    --setenv=PATH="$PATH" \
+    ${HYPRLAND_INSTANCE_SIGNATURE:+--setenv=HYPRLAND_INSTANCE_SIGNATURE="$HYPRLAND_INSTANCE_SIGNATURE"} \
+    ${XDG_RUNTIME_DIR:+--setenv=XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR"} \
+    systemd-inhibit --what=handle-lid-switch --mode=block \
+      --who="Lid awake" --why="Keep running with the lid closed" \
+      "$(realpath "$0")" watch
+  notify "󰒳" "Lid awake enabled"
+}
+
+turn_off() {
+  active || return 0
+  systemctl --user stop "$UNIT"
+  notify "󰒳" "Lid awake disabled"
+}
+
+case "${1:-toggle}" in
+  on) turn_on ;;
+  off) turn_off ;;
+  toggle) if active; then turn_off; else turn_on; fi ;;
+  status)
+    if ! is_laptop; then echo unavailable
+    elif active; then echo on
+    else echo off
+    fi
+    ;;
+  watch) watch_lid ;;
+  *) usage ;;
+esac

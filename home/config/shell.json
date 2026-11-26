@@ -1,0 +1,115 @@
+{
+  "bar": {
+    "background": "glassy",
+    "layout": {
+      "center": [
+        {
+          "id": "omarchy.system-update"
+        },
+        {
+          "id": "omarchy.clock"
+        }
+      ],
+      "centerBegin": [
+        {
+          "id": "somethim.lid-awake"
+        },
+        {
+          "id": "sviat.nightlight"
+        },
+        {
+          "cities": [
+            {
+              "name": "Tirane",
+              "zone": "Europe/Tirane"
+            },
+            {
+              "name": "Delhi",
+              "zone": "Asia/Kolkata"
+            },
+            {
+              "name": "Tokyo",
+              "zone": "Asia/Tokyo"
+            },
+            {
+              "name": "San Francisco",
+              "zone": "America/Los_Angeles"
+            },
+            {
+              "name": "New York",
+              "zone": "America/New_York"
+            }
+          ],
+          "id": "omarchy.elsewhen"
+        }
+      ],
+      "centerEnd": [
+        {
+          "id": "io.github.ajanraj.disposable-email"
+        },
+        {
+          "id": "omarchy.weather"
+        }
+      ],
+      "left": [
+        {
+          "id": "omarchy.menu"
+        },
+        {
+          "id": "somethim.workspaces"
+        },
+        {
+          "id": "omarchy.agents"
+        },
+        {
+          "id": "somethim.vitals"
+        }
+      ],
+      "right": [
+        {
+          "hidden": [],
+          "id": "somethim.tray",
+          "pinned": []
+        },
+        {
+          "id": "omarchy.tailscale"
+        },
+        {
+          "id": "omarchy.bluetooth"
+        },
+        {
+          "hideWhenPaused": true,
+          "id": "debba.media-control"
+        },
+        {
+          "id": "omarchy.network"
+        },
+        {
+          "id": "omarchy.audio"
+        },
+        {
+          "id": "omarchy.monitor"
+        },
+        {
+          "id": "omarchy.power",
+          "showPercentage": true
+        }
+      ],
+      "tray": [
+        {
+          "id": "superwhisper.panel"
+        }
+      ]
+    },
+    "position": "top"
+  },
+  "disabledPlugins": [
+    "omarchy.dev-gallery"
+  ],
+  "plugins": [
+    {
+      "id": "omarchy.media"
+    }
+  ],
+  "version": 1
+}

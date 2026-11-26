@@ -1,0 +1,36 @@
+{
+  "cli_default_open_behavior": "existing_window",
+  "terminal": {
+    "dock": "bottom"
+  },
+  "auto_install_extensions": {
+    "catppuccin": true,
+    "catppuccin-icons": true
+  },
+  "icon_theme": "Catppuccin Latte",
+  "theme": "Omazed",
+  "inlay_hints": {
+    "enabled": true,
+    "show_value_hints": true
+  },
+  "semantic_tokens": "combined",
+  "code_lens": "on",
+  "show_edit_predictions": true,
+  "diagnostics": {
+    "inline": {
+      "enabled": true
+    }
+  },
+  "gutter": {
+    "line_numbers": true
+  },
+  "toolbar": {
+    "selections_menu": true
+  },
+  "auto_signature_help": true,
+  "git": {
+    "inline_blame": {
+      "enabled": true
+    }
+  }
+}

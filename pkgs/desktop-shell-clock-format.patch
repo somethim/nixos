@@ -1,0 +1,115 @@
+--- a/shell/plugins/panels/clock/BarWidget.qml
++++ b/shell/plugins/panels/clock/BarWidget.qml
+@@ -3,37 +3,17 @@
+ import Quickshell.Io
+ import qs.Commons
+ import qs.Ui
+-import "Model.js" as Model
+ 
+-// Date/time label for the bar, and the host for the calendar popup.
+-//
+-// Left click reveals the calendar — asking "what is the date?" is what a
+-// click on a clock means — right click walks the common label formats, and
+-// middle click opens the timezone picker.
++// Left click opens the calendar. Middle click opens the timezone picker.
+ BarWidget {
+   id: root
+   moduleName: "omarchy.clock"
+ 
+   property date displayDate: clock.date
+ 
+-  readonly property string configuredFormat: vertical
+-    ? setting("verticalFormat", "HH\n—\nmm")
+-    : setting("format", "dddd HH:mm")
+-  readonly property string configuredAltFormat: vertical
+-    ? setting("verticalFormatAlt", "dd\nMMM\n'W'ww\n''yy")
+-    : setting("formatAlt", "d MMMM 'W'ww yyyy")
+-
+-  readonly property var formatRing: Model.clockFormatRing(configuredFormat, configuredAltFormat, Model.clockFormats(vertical))
+-
+-  // What the bar shows is what shell.json stores, so a cycled format is the
+-  // format from then on rather than something that reverts on restart.
+-  readonly property string activeFormat: configuredFormat
+-
+-  // A seconds label needs the clock to tick sixty times as often, and a
+-  // repaint a second is a price only the formats that print seconds pay.
+-  readonly property bool showsSeconds: Model.clockNeedsSeconds(activeFormat)
+-  readonly property string displayText: formatted(displayDate)
+-  readonly property var verticalLines: displayText.split("\n")
++  readonly property var formatLocale: Qt.locale(I18n.formatLocale)
++  readonly property string displayText: displayDate.toLocaleString(formatLocale, "ddd d MMM HH:mm")
++  readonly property var verticalLines: displayText.split(" ")
+ 
+   function refresh() {
+     displayDate = new Date()
+@@ -50,34 +30,6 @@
+     if (panelLoader.item && panelLoader.item.resync) panelLoader.item.resync()
+   }
+ 
+-  function cycleFormat() {
+-    var current = String(configuredFormat)
+-    var next = Model.nextClockFormat(formatRing, current)
+-    if (next === "" || next === current) return
+-
+-    var entry = { id: root.moduleName }
+-    for (var key in root.settings) if (key !== "id") entry[key] = root.settings[key]
+-    entry[vertical ? "verticalFormat" : "format"] = next
+-
+-    // Applied locally first so the label changes on the click itself; the
+-    // shell.json write comes back through the bar as the same value.
+-    root.settings = entry
+-    if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function")
+-      root.bar.shell.updateEntryInline(root.moduleName, entry)
+-  }
+-
+-  // Day and month names follow the Omarchy language, not the system locale,
+-  // which only catches up at the next login.
+-  readonly property var formatLocale: Qt.locale(I18n.formatLocale)
+-
+-  // The ISO week goes in as a literal, so its digits are localized here the
+-  // way Qt localizes the rest of the format.
+-  function formatted(date) {
+-    var week = Model.isoWeekLiteral(date.getFullYear(), date.getMonth(), date.getDate())
+-    week = week.split("").map(function(digit) { return I18n.formatNumber(digit) }).join("")
+-    return date.toLocaleString(root.formatLocale, activeFormat.replace(/ww/g, week))
+-  }
+-
+   // ---- Calendar popup. Shape contract for shell.summon/hide/toggle
+   //      routing: Bar.findPanelWidget requires open/close/opened on the
+   //      bar-widget root.
+@@ -133,7 +85,7 @@
+ 
+   WallClock {
+     id: clock
+-    step: root.showsSeconds ? 1000 : 60000
++    step: 60000
+     onDateChanged: root.displayDate = date
+   }
+ 
+@@ -153,7 +105,6 @@
+ 
+     function refresh(): void { root.broadcast("refresh") }
+     function resync(): void { root.broadcast("resync") }
+-    function cycleFormat(): void { root.cycleFormat() }
+     function toggleWeekStart(): void { root.toggleWeekStart() }
+     function open(): void { root.open() }
+     function close(): void { root.close() }
+@@ -172,15 +123,12 @@
+     fixedHeight: root.vertical ? root.verticalLines.length * Style.bar.iconSlot : -1
+     horizontalMargin: 8.75
+     verticalPadding: 8.75
+-    tooltipText: I18n.t("clock.toggleFormat")
+-    // The clock is text to read, not an icon to press, so a click never
+-    // shrinks it; the format it cycles to, or the panel it opens, is feedback.
++    tooltipText: ""
+     pressFeedbackButtons: Qt.NoButton
+ 
+     onPressed: function(b) {
+-      if (b === Qt.RightButton) root.cycleFormat()
+-      else if (b === Qt.MiddleButton) { if (root.bar) root.bar.run("omarchy-menu-timezone") }
+-      else root.togglePanel()
++      if (b === Qt.LeftButton) root.togglePanel()
++      else if (b === Qt.MiddleButton && root.bar) root.bar.run("omarchy-menu-timezone")
+     }
+ 
+     Column {

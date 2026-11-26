@@ -1,0 +1,131 @@
+--- a/shell/plugins/panels/clock/Panel.qml
++++ b/shell/plugins/panels/clock/Panel.qml
+@@ -1,5 +1,6 @@
+ import QtQuick
+ import Quickshell
++import Quickshell.Io
+ import qs.Commons
+ import qs.Commons as Commons
+ import qs.Ui
+@@ -136,6 +137,53 @@
+   function refresh() {
+     root.today = new Date()
+     root.goToToday()
++    root.loadEvents()
++  }
++
++  // ---- Upcoming events (read-only): khal reads the local copy that vdirsyncer
++  //      keeps in sync. One line per event: date|start|end|title (empty times
++  //      for all-day events). Rows are flattened to day headings and events.
++  property var eventRows: []
++  readonly property int eventDays: 7
++  readonly property int eventLimit: 8
++
++  function loadEvents() {
++    if (eventsProc.running) return
++    eventsProc.running = true
++  }
++
++  function parseEvents(raw) {
++    var rows = []
++    var count = 0
++    var lastDate = ""
++    var lines = String(raw || "").split("\n")
++    for (var i = 0; i < lines.length && count < root.eventLimit; ++i) {
++      var parts = lines[i].split("|")
++      if (parts.length < 4 || !/^\d{4}-\d{2}-\d{2}$/.test(parts[0])) continue
++      // --once lists a multi-day event one time; one that started before today sits under today.
++      var day = parts[0] < root.todayKey ? root.todayKey : parts[0]
++      if (day !== lastDate) {
++        lastDate = day
++        var d = new Date(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1, Number(day.slice(8, 10)), 12)
++        rows.push({ heading: true, text: d.toLocaleDateString(root.labelLocale, "ddd d MMM") })
++      }
++      var time = parts[1] ? (parts[2] ? parts[1] + " - " + parts[2] : parts[1]) : ""
++      rows.push({ heading: false, time: time, text: parts.slice(3).join("|") })
++      count++
++    }
++    return rows
++  }
++
++  Process {
++    id: eventsProc
++    command: ["khal", "list", "--once", "--day-format", "", "--format",
++      "{start-date}|{start-time}|{end-time}|{title}", "today", root.eventDays + "d"]
++    stdout: StdioCollector {
++      waitForEnd: true
++      onStreamFinished: root.eventRows = root.parseEvents(text)
++    }
++    // No calendars set up (or khal fails): show the empty state.
++    onExited: function(exitCode) { if (exitCode !== 0) root.eventRows = [] }
+   }
+ 
+   function goToToday() {
+@@ -784,6 +832,67 @@
+               }
+             }
+           }
++
++          // ---- Upcoming events, read-only: the next days from the local
++          //      calendar copy. Empty state when there is nothing to show.
++          Column {
++            id: eventsColumn
++            width: gridColumn.width
++            anchors.horizontalCenter: parent.horizontalCenter
++            spacing: Style.space(4)
++
++            Rectangle {
++              width: parent.width
++              height: Style.spacing.hairline
++              color: root.contentForeground
++              opacity: 0.1
++            }
++
++            Text {
++              visible: root.eventRows.length === 0
++              width: parent.width
++              textFormat: Text.PlainText
++              horizontalAlignment: Text.AlignHCenter
++              topPadding: Style.space(4)
++              text: "No upcoming events"
++              color: Qt.darker(root.contentForeground, 1.9)
++              font.family: root.contentFontFamily
++              font.pixelSize: Style.font.bodySmall
++            }
++
++            Repeater {
++              model: root.eventRows
++
++              Row {
++                required property var modelData
++                width: eventsColumn.width
++                spacing: Style.space(10)
++                topPadding: modelData.heading ? Style.space(4) : 0
++
++                Text {
++                  visible: !modelData.heading && modelData.time !== ""
++                  width: visible ? Style.space(96) : 0
++                  textFormat: Text.PlainText
++                  text: modelData.time
++                  color: Qt.darker(root.contentForeground, 1.5)
++                  font.family: root.contentFontFamily
++                  font.pixelSize: Style.font.bodySmall
++                }
++
++                Text {
++                  width: modelData.heading || modelData.time === "" ? parent.width : parent.width - Style.space(106)
++                  textFormat: Text.PlainText
++                  elide: Text.ElideRight
++                  text: modelData.text
++                  color: modelData.heading ? Qt.darker(root.contentForeground, 1.5) : root.contentForeground
++                  font.family: root.contentFontFamily
++                  font.pixelSize: modelData.heading ? Style.font.caption : Style.font.body
++                  font.bold: modelData.heading
++                  font.letterSpacing: modelData.heading ? 1 : 0
++                }
++              }
++            }
++          }
+         }
+       }
+     }

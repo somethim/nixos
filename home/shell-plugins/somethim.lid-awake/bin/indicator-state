@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# State for the indicators that the built-in widget reads from shell services
+# a plugin cannot reach. Each value is read from its owner every time; nothing
+# is cached here, so the bar never drifts from the real state.
+
+here=$(dirname "$(realpath "$0")")
+
+case "${1:-status}" in
+  status)
+    dnd=$(omarchy-shell notifications isDnd 2>/dev/null || true)
+    idle=$(omarchy-shell idle status 2>/dev/null || true)
+    lid=$("$here/lid-awake" status 2>/dev/null || true)
+    jq -e . >/dev/null 2>&1 <<<"$idle" || idle=null
+    jq -cn --arg dnd "$dnd" --argjson idle "$idle" --arg lid "$lid" '{
+      dnd: ($dnd == "on"),
+      stayAwake: ($idle != null and $idle.stayAwake == true),
+      lid: (if ($lid == "on" or $lid == "off") then $lid else "unavailable" end)
+    }'
+    ;;
+  dnd) omarchy-shell notifications toggleDnd >/dev/null ;;
+  idle) omarchy toggle idle >/dev/null ;;
+  lid) "$here/lid-awake" toggle ;;
+  *) echo 'usage: indicator-state [status|dnd|idle|lid]' >&2; exit 2 ;;
+esac

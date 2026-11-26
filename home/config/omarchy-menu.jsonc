@@ -1,0 +1,107 @@
+{
+  // Menu rows for NixOS. This file replaces the rows of the packaged menu with the same id.
+  // A replaced row needs all its fields (label, icon, action), not only the changed one.
+  // A row with "when":"false" is hidden, and so are all rows below it.
+  // The shell only reads this file. Table of the rows: README.md section 3.2.1.
+
+  // Learn: the upstream manual and the Arch wiki do not apply; the NixOS and Home Manager manuals do.
+  "learn.omarchy": {"icon":"","label":"Omarchy","when":"false"},
+  "learn.arch": {"icon":"󰣇","label":"Arch","when":"false"},
+  "learn.community": {"icon":"󰙯","label":"Community","when":"false"},
+  "learn.nixos": {"icon":"","label":"NixOS","action":"omarchy-launch-webapp 'https://nixos.org/manual/nixos/stable/'"},
+  "learn.home-manager": {"icon":"","label":"Home Manager","action":"omarchy-launch-webapp 'https://nix-community.github.io/home-manager/'"},
+
+  // Appearance: the theme is fixed at build time (home/desktop.nix), so only a rebuild can change it.
+  "appearance.theme": {"icon":"󰸌","label":"Theme","when":"false"},
+  "appearance.font": {"icon":"","label":"Font","when":"false"},
+  "appearance.windows.transparency": {"icon":"󰂵","label":"Window Opacity","when":"false"},
+  "appearance.branding": {"icon":"","iconFont":"omarchy","label":"Branding","when":"false"},
+  "appearance.unlock": {"icon":"󰟵","label":"Unlock","when":"false"},
+  "appearance.colors": {"icon":"","label":"Colours","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/theme/colors.toml"},
+
+  // Trigger
+  "trigger.toggle.crash-capture-on": {"icon":"󱚡","label":"Crash Capture On","when":"false"},
+  "trigger.toggle.crash-capture-off": {"icon":"󱚡","label":"Crash Capture Off","when":"false"},
+  "trigger.share.clipboard": {"icon":"","label":"Clipboard","when":"false"},
+  "trigger.share.file": {"icon":"","label":"File","when":"false"},
+  "trigger.share.folder": {"icon":"","label":"Folder","when":"false"},
+  "trigger.hardware.hybrid-gpu-on": {"icon":"","label":"Switch to Hybrid GPU","when":"false"},
+  "trigger.hardware.hybrid-gpu-off": {"icon":"","label":"Switch to Integrated GPU","when":"false"},
+  "trigger.share.receive": {"icon":"󰥦","label":"Receive","action":"uwsm-app -- localsend_app"},
+  "trigger.capture.qr": {"icon":"󰐲","label":"QR Code","when":"command -v zbarimg","action":"omarchy-capture-qr"},
+  "trigger.transcode": {"icon":"󰧸","label":"Transcode","when":"command -v ffmpeg","action":"omarchy-transcode"},
+  "trigger.capture.screenrecord.no-audio": {"icon":"","label":"With no audio","action":"env OMARCHY_SCREENRECORD_USE_PORTAL=true omarchy-capture-screenrecording"},
+  "trigger.capture.screenrecord.desktop-audio": {"icon":"","label":"With desktop audio","action":"env OMARCHY_SCREENRECORD_USE_PORTAL=true omarchy-capture-screenrecording --with-desktop-audio"},
+  "trigger.capture.screenrecord.microphone": {"icon":"","label":"With desktop + microphone audio","action":"env OMARCHY_SCREENRECORD_USE_PORTAL=true omarchy-capture-screenrecording --with-desktop-audio --with-microphone-audio"},
+
+  // Setup: the Hyprland files are read-only links, so the rows open the files of the checkout and offer a rebuild.
+  "setup.monitors": {"icon":"󰍹","label":"Monitors","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/hypr/monitors.lua"},
+  "setup.keybindings": {"icon":"","label":"Keybindings","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/hypr/bindings.lua"},
+  "setup.input": {"icon":"","label":"Input","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/hypr/input.lua"},
+  "setup.config.hyprland": {"icon":"","label":"Hyprland","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/hypr/hyprland.lua"},
+  "setup.config.xcompose": {"icon":"󰞅","label":"XCompose","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu xcompose"},
+  "setup.config.looknfeel": {"icon":"","label":"Look and feel","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/hypr/looknfeel.lua"},
+  "setup.config.autostart": {"icon":"","label":"Autostart","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit home/hypr/autostart.lua"},
+  "setup.security.fingerprint": {"icon":"󰈷","label":"Fingerprint","when":"command -v fprintd-enroll","action":"omarchy-launch-floating-terminal-with-presentation fprintd-enroll"},
+
+  // Setup, hidden: Arch Linux tools, or settings that this configuration declares in Nix.
+  "setup.typing": {"icon":"","label":"Typing","when":"false"},
+  "setup.language": {"icon":"","label":"Language","when":"false"},
+  "setup.network.dns": {"icon":"󰇖","label":"DNS","when":"false"},
+  "setup.default": {"icon":"","label":"Defaults","when":"false"},
+  "setup.plugin": {"icon":"󰐱","label":"Plugins","when":"false"},
+  "setup.security.fido2": {"icon":"","label":"Fido2","when":"false"},
+  "setup.security.sshd": {"icon":"󰣀","label":"SSHD","when":"false"},
+  "setup.security.ssh-agent": {"icon":"󰣀","label":"SSH Agent","when":"false"},
+  "setup.security.sudoless-docker": {"icon":"󰡨","label":"Sudoless Docker","when":"false"},
+  "setup.security.passwordless-sudo": {"icon":"󰟵","label":"Passwordless Sudo","when":"false"},
+  "setup.config.git": {"icon":"","label":"Git","when":"false"},
+  "setup.config.hyprsunset": {"icon":"","label":"Hyprsunset","when":"false"},
+  "setup.direct-boot": {"icon":"","label":"Direct Boot","when":"false"},
+  "setup.reset": {"icon":"󰑓","label":"Reset Computer","when":"false"},
+
+  // Install and Remove: no imperative install on NixOS. Packages are declared in modules/apps.nix.
+  "install.package": {"icon":"󰣇","label":"Try a package","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu try"},
+  "install.edit": {"icon":"","label":"Edit packages","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit modules/apps.nix"},
+  "install.ai": {"icon":"󱚤","label":"AI","when":"false"},
+  "install.service": {"icon":"","label":"Service","when":"false"},
+  "install.development": {"icon":"󰵮","label":"Development","when":"false"},
+  "install.editor": {"icon":"","label":"Editor","when":"false"},
+  "install.style": {"icon":"","label":"Style","when":"false"},
+  "install.gaming": {"icon":"","label":"Gaming","when":"false"},
+  "install.browser": {"icon":"","label":"Browser","when":"false"},
+  "install.webapp": {"icon":"","label":"Web App","when":"false"},
+  "install.terminal": {"icon":"","label":"Terminal","when":"false"},
+  "install.tui": {"icon":"","label":"TUI","when":"false"},
+  "install.windows": {"icon":"󰍲","label":"Windows","when":"false"},
+  "install.aur": {"icon":"󰣇","label":"AUR","when":"false"},
+  "install.preinstalls": {"icon":"󰏓","label":"Preinstalls","when":"false"},
+  "remove.package": {"icon":"󰣇","label":"Edit packages","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu edit modules/apps.nix"},
+  "remove.ai": {"icon":"󱚤","label":"AI","when":"false"},
+  "remove.dictation": {"icon":"","label":"Dictation","when":"false"},
+  "remove.service": {"icon":"","label":"Services","when":"false"},
+  "remove.development": {"icon":"󰵮","label":"Development","when":"false"},
+  "remove.theme": {"icon":"󰸌","label":"Theme","when":"false"},
+  "remove.gaming": {"icon":"","label":"Gaming","when":"false"},
+  "remove.browser": {"icon":"","label":"Browser","when":"false"},
+  "remove.webapp": {"icon":"","label":"Web App","when":"false"},
+  "remove.tui": {"icon":"","label":"TUI","when":"false"},
+  "remove.windows": {"icon":"󰍲","label":"Windows","when":"false"},
+  "remove.preinstalls": {"icon":"󰏓","label":"Preinstalls","when":"false"},
+  "remove.security": {"icon":"","label":"Security","when":"false"},
+
+  // Update: the id update.omarchy keeps its place at the top and now updates the packages (system-update).
+  "update.omarchy": {"icon":"","iconFont":"","label":"Packages","action":"omarchy-launch-floating-terminal-with-presentation system-update packages"},
+  "update.rebuild": {"icon":"","label":"Rebuild","action":"omarchy-launch-floating-terminal-with-presentation nixos-menu rebuild"},
+  "update.firmware": {"icon":"","label":"Firmware","action":"omarchy-launch-floating-terminal-with-presentation system-update firmware"},
+  "update.process.hyprsunset": {"icon":"","label":"Hyprsunset","action":"systemctl --user restart hyprsunset"},
+  "update.channel": {"icon":"󰔫","label":"Channel","when":"false"},
+  "update.kernel": {"icon":"","label":"Kernel","when":"false"},
+  "update.config": {"icon":"","label":"Config","when":"false"},
+  "update.themes": {"icon":"󰸌","label":"Extra Themes","when":"false"},
+  "update.password.drive": {"icon":"","label":"Drive Encryption","when":"false"},
+  "update.timezone": {"icon":"","label":"Timezone","when":"false"},
+
+  // About: a plain fastfetch window (the packaged about window needs the Arch fastfetch config).
+  "about": {"icon":"","label":"About","action":"xdg-terminal-exec --app-id=org.omarchy.terminal --title=About -e sh -c 'fastfetch; read -rsn1'"},
+}
